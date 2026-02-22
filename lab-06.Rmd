@@ -58,9 +58,15 @@ fisheries <- fisheries %>% filter(total> 100000) %>% mutate(percentcapture = ((c
 
 ```{r graphculture}
 
-fisheries %>% ggplot(aes(x= country, y = percentcapture, fill = percentaquaculture)) + geom_col() + coord_flip() + labs(x = "Country", y = "Percentage of tons by capture", title = "Fishery Production by Country due to Capture",subtitle = "Including percentage due to aquaculture", col = "Percent due to aquaculture") 
-
-
+fisheries %>% ggplot(
+  aes(x= country, y = percentcapture, fill = percentaquaculture)) + 
+  geom_col() + 
+  coord_flip() + 
+  labs(x = "Country", 
+       y = "Percentage of tons by capture", 
+       title = "Fishery Production by Country due to Capture",
+       subtitle = "Including percentage due to aquaculture", 
+       col = "Percent due to aquaculture") 
 ```
 
 The additions I added:
@@ -70,3 +76,35 @@ The additions I added:
  3) utilizing the x axis in conjuction with a fill in order to represent both percentages of capture and aquaculture to production. 
 
 This dataset has 82 countries so the y-axis is definitely all up on each other, so if needed maybe there is a way to split up the data set? I am not completely sure on that aspect, but I do understand how packed the distribution looks. However, I do feel as if it is an improvement in seeing more clearly the trends that are occurring and how each country varies from the other, which was my goal from the start:)
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(countrycode)
+
+fisheries %>%
+  mutate(
+    continent = countrycode(country, origin = "country.name", destination = "continent"),
+    continent = if_else(is.na(continent), "Other/Unknown", continent),
+    continent = factor(continent),
+    country = reorder(country, percentcapture)
+  ) %>%
+  ggplot(aes(x = country, y = percentcapture, fill = percentaquaculture)) +
+  geom_col() +
+  coord_flip() +
+  facet_wrap(~ continent, scales = "free_y") +
+  labs(
+    x = "Country",
+    y = "Percentage of tons by capture",
+    title = "Fishery Production by Country due to Capture",
+    subtitle = "Including percentage due to aquaculture",
+    fill = "Percent due to aquaculture"
+    # font size for axes and title
+    
+  ) + 
+  theme(legend.position = "bottom",
+        axis.text.y = element_text(size = 4),  # Adjust y-axis text size
+        axis.title = element_text(size = 10),   # Adjust axis title size
+        plot.title = element_text(size = 14),   # Adjust plot title size
+        plot.subtitle = element_text(size = 12)) # Adjust subtitle size
+```
